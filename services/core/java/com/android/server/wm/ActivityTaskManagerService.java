@@ -283,6 +283,8 @@ import com.android.server.uri.NeededUriGrants;
 import com.android.server.uri.UriGrantsManagerInternal;
 import com.android.server.wallpaper.WallpaperManagerInternal;
 
+import com.evervolv.internal.applications.ActivityManagerExt;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileDescriptor;
@@ -796,6 +798,9 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
 
     private Set<Integer> mProfileOwnerUids = new ArraySet<Integer>();
 
+    // Activity related helper
+    private ActivityManagerExt mActivityManagerExt;
+
     private final class SettingObserver extends ContentObserver {
         private final Uri mFontScaleUri = Settings.System.getUriFor(FONT_SCALE);
         private final Uri mHideErrorDialogsUri = Settings.Global.getUriFor(HIDE_ERROR_DIALOGS);
@@ -902,6 +907,9 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
 
     public void installSystemProviders() {
         mSettingsObserver = new SettingObserver();
+        // ActivityManagerExt depends on settings so we can initialize only
+        // after providers are available.
+        mActivityManagerExt = new ActivityManagerExt(mContext);
     }
 
     public void retrieveSettings(ContentResolver resolver) {
@@ -7173,5 +7181,9 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
         public void unregisterTaskStackListener(ITaskStackListener listener) {
             ActivityTaskManagerService.this.unregisterTaskStackListener(listener);
         }
+    }
+
+    public boolean shouldForceLongScreen(String packageName) {
+        return mActivityManagerExt.shouldForceLongScreen(packageName);
     }
 }
